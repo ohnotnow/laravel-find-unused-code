@@ -79,8 +79,12 @@ class FindUnusedClasses extends Command
     {
         $routes = \Route::getRoutes();
         foreach ($routes as $route) {
-            [$controller, $method] = explode('@', $route->getAction()['controller']);
-            $this->controllerNames[] = class_basename($controller);
+            try {
+                [$controller, $method] = explode('@', $route->getAction()['controller']);
+                $this->controllerNames[] = class_basename($controller);
+            } catch (\Exception $e) {
+                \Log::info('Ignoring route : ' . $route->getAction()['controller']);
+            }
         }
     }
 
