@@ -92,42 +92,4 @@ class FindUnusedClasses extends Command
     {
         return in_array($className, $this->controllerNames);
     }
-
-    public function ignoreCommonStuff($funcName, $fileName)
-    {
-        if ($funcName == 'handle' and preg_match('/(Middleware|Listeners|Commands)/', $fileName) === 1) {
-            return true;
-        }
-        if ($funcName == 'broadcastOn' and preg_match('/Events/', $fileName) === 1) {
-            return true;
-        }
-
-        return in_array($funcName, $this->crudNames) and Str::contains($fileName, 'Controller');
-    }
-
-    public function shouldConsider($filename)
-    {
-        if (Str::contains($filename, 'ServiceProvider')) {
-            return false;
-        }
-        if (Str::contains($filename, 'Policies')) {
-            return false;
-        }
-        if (Str::contains($filename, 'Observers')) {
-            return false;
-        }
-        return true;
-    }
-
-    protected function mangleLaravelNames($fName)
-    {
-        $match = '';
-        if (preg_match('/^scope(.+$)/', $fName, $match) === 1) {
-            return Str::camel($match[1]);
-        }
-        if (preg_match('/^(get|set)(.+)Attribute$/', $fName, $match) === 1) {
-            return Str::snake($match[2]);
-        }
-        return $fName;
-    }
 }
