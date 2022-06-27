@@ -52,14 +52,9 @@ class FindUnusedClasses extends Command
     {
         $this->populateControllerNamesFromRoutes();
         $this->defaultPaths->each(function ($path) {
-            $phpFiles = collect(File::allFiles($path))->filter(function ($filename) {
-                return Str::endsWith($filename, '.php');
-            })->each(function ($phpFile) {
+            $phpFiles = collect(File::allFiles($path))->filter(fn ($filename) => Str::endsWith($filename, '.php'))->each(function ($phpFile) {
                 $fileContents = file_get_contents($phpFile);
                 if (preg_match('/class\s+(\w+)/', $fileContents, $className) === 1) {
-                    // if (str_contains($className[1], 'SampleLog')) {
-                    //     dump($phpFile);
-                    // }
                     $this->classNames[$className[1]] = $phpFile->getPathName();
                     $fileContents = str_replace($className[1], Str::random(16), $fileContents);
                 }
@@ -79,12 +74,11 @@ class FindUnusedClasses extends Command
     {
         $routes = \Route::getRoutes();
         foreach ($routes as $route) {
-            try {
-                [$controller, $method] = explode('@', $route->getAction()['controller']);
-                $this->controllerNames[] = class_basename($controller);
-            } catch (\Exception $e) {
-                \Log::info('Ignoring route : ' . $route->getAction()['controller']);
+            if (! str_contains($route->getAction()['controller'], 'App')) {
+                continue;
             }
+            [$controller, $method] = explode('@', $route->getAction()['controller']);
+            $this->controllerNames[] = class_basename($controller);
         }
     }
 
@@ -116,6 +110,7 @@ class FindUnusedClasses extends Command
         if (Str::contains($filename, 'Observers')) {
             return false;
         }
+
         return true;
     }
 
@@ -128,6 +123,7 @@ class FindUnusedClasses extends Command
         if (preg_match('/^(get|set)(.+)Attribute$/', $fName, $match) === 1) {
             return Str::snake($match[2]);
         }
+
         return $fName;
     }
 }
